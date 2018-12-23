@@ -6,20 +6,12 @@ RIGHT  = 1;
 DOWN = 2;
 LEFT = 3;
 
-var currDrawX = 0;
-var currDrawY = 0;
-
 var maxX;
 var maxY;
 
-window.onload = function() {
-  var canvas = document.getElementById("canvas");
-
-
-
-  var ctx = canvas.getContext("2d");
-  ctx.fillStyle = "#000000";
-
+function initCanvas(ctx) {
+  // Scale up the canvas by the DPR, then scale back down with CSS.
+  // www.html5rocks.com/en/tutorials/canvas/hidpi
   var dpr = window.devicePixelRatio || 1;
 
   canvas.width = window.innerWidth * dpr;
@@ -33,6 +25,16 @@ window.onload = function() {
   maxX = Math.round(window.innerWidth/WALL_SIZE);
   maxY = Math.round(window.innerHeight/WALL_SIZE);
 
+  // Fill the background with black.
+  ctx.fillStyle = "#000000";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+window.onload = function() {
+  var canvas = document.getElementById("canvas");
+  var ctx = canvas.getContext("2d");
+
+  initCanvas(ctx);
 
   var walls = [];
   for (var y = 0; y < maxY; y++) {
@@ -44,9 +46,8 @@ window.onload = function() {
 
   for (var y = 0; y < maxY; y++) {
     for (var x = 0; x < maxX; x++) {
-      if (walls[y][x] === 0) {
-	// TODO: Draw paths instead and fill canvas with black.
-	drawWall(ctx, x*WALL_SIZE, y*WALL_SIZE);
+      if (walls[y][x] === 1) {
+	drawPathCell(ctx, x*WALL_SIZE, y*WALL_SIZE);
       }
     }
   }
@@ -129,6 +130,7 @@ function r(n) {
   return Math.round((Math.random() * n));
 }
 
-function drawWall(ctx, x, y, o) {
+function drawPathCell(ctx, x, y) {
+  ctx.fillStyle = "#FFFFFF";
   ctx.fillRect(x, y, WALL_SIZE, WALL_SIZE);
 }
