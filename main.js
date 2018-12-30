@@ -47,8 +47,9 @@ window.onload = function () {
 
   let grid = initGrid();
 
-  //buildDfsMaze(grid, r(maxX-1), r(maxY-1));
+  // buildDfsMaze(grid, rand(maxX-1), rand(maxY-1));
   buildCellularAutomataMaze(ctx, grid);
+
   renderMaze(ctx, grid);
 }
 
@@ -58,8 +59,8 @@ function renderMaze(ctx, grid) {
 
   for (var y = 0; y < maxY; y++) {
     for (var x = 0; x < maxX; x++) {
-      if (grid[y][x] === GRID_PATH) {
-        drawPathCell(ctx, x * WALL_SIZE, y * WALL_SIZE);
+      if (grid[y][x] !== GRID_WALL) {
+        drawPathCell(ctx, x * WALL_SIZE, y * WALL_SIZE, grid[y][x]);
       }
     }
   }
@@ -77,7 +78,7 @@ function buildCellularAutomataMaze(ctx, grid) {
   let DEATH_MIN = 1;
   let BIRTH_LIMIT = 3;
   let NUM_STEPS = 100;
-  let STEP_DELAY = 100
+  let STEP_DELAY = 10
 
   for (var y = 0; y < maxY; y++) {
     for (var x = 0; x < maxX; x++) {
@@ -114,9 +115,9 @@ function buildCellularAutomataMaze(ctx, grid) {
 
   let renderCount = 0
   let timeout = setInterval(function () {
-    console.log("Running...")
     if (renderCount == NUM_STEPS) {
       clearTimeout(timeout);
+      renderConnectedComponents(ctx, grid);
       return;
     }
 
@@ -124,6 +125,51 @@ function buildCellularAutomataMaze(ctx, grid) {
     renderMaze(ctx, grid);
     renderCount++;
   }, STEP_DELAY)
+}
+
+/**
+ * Draws the connected components in different colors.
+ */
+function renderConnectedComponents(ctx, grid) {
+  let visited = [];
+
+  function explore(x, y, fillStyle) {
+    if (visited.includes(y*maxY + x*maxX)) {
+      return;
+    }
+
+    if (grid[y][x] === GRID_WALL) {
+      return;
+    }
+
+    grid[y][x] = fillStyle;
+    visited.push(y * maxY + x*maxX);
+
+    for (let i = -1; i <= 1; i++) {
+      for (let j = -1; j <= 1; j++) {
+        if (Math.abs(i) === Math.abs(j)) {
+          continue;
+        }
+
+        let nextY = y + i;
+        let nextX = x + j;
+        if (nextX < 0 || nextY < 0 || nextY >= maxY || nextX >= maxX) {
+          continue;
+        }
+
+        explore(nextX, nextY, fillStyle);
+      }
+    }
+  }
+
+  for (let y = 0; y < maxY; y++) {
+    for (let x = 0; x < maxX; x++) {
+      let fillStyle = makeFillStyle(rand(255, 5), rand(255, 5), rand(255, 5));
+      explore(x, y, fillStyle);
+    }
+  }
+
+  renderMaze(ctx, grid);
 }
 
 function countAliveNeighbours(grid, x, y) {
@@ -155,7 +201,7 @@ var length = 0;
  * Builds a maze using DFS.
  */
 function buildDfsMaze(grid, x, y) {
-  if (length > PATH_SIZE || grid[y][x] === 1 || getNeighbors(walls, x, y).filter((x) => x == 1).length > 1) {
+  if (length > PATH_SIZE || grid[y][x] === 1 || getNeighbors(grid, x, y).filter((x) => x == 1).length > 1) {
     return;
   }
 
@@ -182,7 +228,7 @@ function buildDfsMaze(grid, x, y) {
   }
 
   while (possibleDirs.length > 0 && length < PATH_SIZE) {
-    var dirIndex = r(possibleDirs.length - 1);
+    var dirIndex = rand(possibleDirs.length - 1);
     var nextX = x;
     var nextY = y;
 
@@ -202,7 +248,7 @@ function buildDfsMaze(grid, x, y) {
     }
     possibleDirs.splice(dirIndex, 1);
 
-    fillPath(grid, nextX, nextY);
+    buildDfsMaze(grid, nextX, nextY);
   }
   return;
 }
@@ -221,11 +267,20 @@ function getNeighbors(grid, x, y) {
   return result;
 }
 
-function r(n) {
-  return Math.round((Math.random() * n));
+function rand(n, low) {
+  if (low === undefined) low = 0;
+  return Math.round((Math.random() * (n - low))) + low;
 }
 
-function drawPathCell(ctx, x, y) {
-  ctx.fillStyle = "#FFFFFF";
+function drawPathCell(ctx, x, y, fillStyle) {
+  if (fillStyle === undefined || fillStyle === GRID_PATH) {
+    fillStyle = makeFillStyle(255, 255, 255);
+  }
+
+  ctx.fillStyle = fillStyle;
   ctx.fillRect(x, y, WALL_SIZE, WALL_SIZE);
+}
+
+function makeFillStyle(r, g, b) {
+  return 'rgb(' + r + ', ' + g + ', ' + b + ')';
 }
