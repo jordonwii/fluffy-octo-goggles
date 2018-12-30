@@ -1,17 +1,20 @@
-WALL_SIZE = 20;
-PATH_SIZE = 1600;
+const WALL_SIZE = 20;
+const PATH_SIZE = 1600;
 
-let GRID_WALL = 0;
-let GRID_PATH = 1;
+const GRID_WALL = 0;
+const GRID_PATH = 1;
 
-UP = 0;
-RIGHT = 1;
-DOWN = 2;
-LEFT = 3;
+const UP = 0;
+const RIGHT = 1;
+const DOWN = 2;
+const LEFT = 3;
 
-var maxX;
-var maxY;
+let maxX;
+let maxY;
 
+/**
+ * Initializes the canvas.
+ */
 function initCanvas(ctx) {
   // Scale up the canvas by the DPR, then scale back down with CSS.
   // www.html5rocks.com/en/tutorials/canvas/hidpi
@@ -30,29 +33,32 @@ function initCanvas(ctx) {
 }
 
 function initGrid() {
-  var grid = [];
-  for (var y = 0; y < maxY; y++) {
+  let grid = [];
+  for (let y = 0; y < maxY; y++) {
     grid[y] = new Array(maxX).fill(0);
   }
   return grid;
 }
 
-
-
-window.onload = function () {
-  var canvas = document.getElementById("canvas");
-  var ctx = canvas.getContext("2d");
+window.onload = function() {
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
 
   initCanvas(ctx);
 
-  let grid = initGrid();
+  const grid = initGrid();
 
   // buildDfsMaze(grid, rand(maxX-1), rand(maxY-1));
   buildCellularAutomataMaze(ctx, grid);
 
   renderMaze(ctx, grid);
-}
+};
 
+/**
+ * 
+ * @param {*} ctx 
+ * @param {*} grid 
+ */
 function renderMaze(ctx, grid) {
   ctx.fillStyle = "#000000";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
