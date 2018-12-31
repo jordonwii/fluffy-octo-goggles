@@ -1,8 +1,8 @@
-import {Game} from "./game.js";
-import {GameGrid} from "./gamegrid.js";
+import { Game } from "./game.js";
+import { GameGrid } from "./gamegrid.js";
 import { Cell } from "./cell.js";
 import { Maze } from "./maze.js";
-import * as common from "./common.js"; 
+import * as common from "./common.js";
 
 /**
  * Builds a maze using the cellular automata method.
@@ -18,8 +18,7 @@ export class CAMaze implements Maze {
     readonly NUM_STEPS = 100;
     readonly STEP_DELAY = 10
 
-    constructor(private game: Game,private grid: GameGrid) {
-    }
+    constructor(private game: Game, private grid: GameGrid) { }
 
     build() {
         for (var y = 0; y < this.game.maxY; y++) {
@@ -30,6 +29,8 @@ export class CAMaze implements Maze {
 
         this.game.render();
 
+        // This loop gives us some time between each cellular automaton step. Not part of any final product,
+        // but kind of cool to look at. 
         let renderCount = 0
         let timeout = setInterval(function () {
             if (renderCount == this.NUM_STEPS) {
@@ -45,19 +46,19 @@ export class CAMaze implements Maze {
     }
 
     caStep() {
-            let oldGrid = this.grid.copyAllCells();
-            for (var y = 0; y < this.game.maxY; y++) {
-                for (var x = 0; x < this.game.maxX; x++) {
-                    let nbs = this.countAliveNeighbours(oldGrid, x, y);
+        let oldGrid = this.grid.copyAllCells();
+        for (var y = 0; y < this.game.maxY; y++) {
+            for (var x = 0; x < this.game.maxX; x++) {
+                let nbs = this.countAliveNeighbours(oldGrid, x, y);
 
-                    let cell = this.grid.getCell(x, y);
-                    if (cell.isWall) {
-                        cell.isWall = (nbs !== this.BIRTH_LIMIT);
-                    } else {
-                        cell.isWall = (nbs >= this.DEATH_MAX || nbs <= this.DEATH_MIN);
-                    }
+                let cell = this.grid.getCell(x, y);
+                if (cell.isWall) {
+                    cell.isWall = (nbs !== this.BIRTH_LIMIT);
+                } else {
+                    cell.isWall = (nbs >= this.DEATH_MAX || nbs <= this.DEATH_MIN);
                 }
             }
+        }
     }
 
     /**
@@ -66,12 +67,12 @@ export class CAMaze implements Maze {
     renderConnectedComponents() {
         let visited: Array<number> = [];
 
-        let explore = function(x, y, r, g, b) {
+        let explore = function (x: number, y: number, r: number, g: number, b: number) {
             if (visited.includes(y * this.game.maxY + x * this.game.maxX)) {
                 return;
             }
 
-            let c:Cell = this.grid.getCell(x, y);
+            let c: Cell = this.grid.getCell(x, y);
 
             if (c.isWall) {
                 return;
@@ -82,7 +83,7 @@ export class CAMaze implements Maze {
 
             for (let i = -1; i <= 1; i++) {
                 for (let j = -1; j <= 1; j++) {
-                    // ignore diagonals and (0,0)
+                    // Ignore diagonals and (0,0)
                     if (Math.abs(i) === Math.abs(j)) {
                         continue;
                     }
@@ -108,26 +109,26 @@ export class CAMaze implements Maze {
     }
 
     private countAliveNeighbours(oldGrid: Array<Array<Cell>>, x: number, y: number) {
-    let count = 0;
+        let count = 0;
 
-    for (let i = -1; i < 2; i++) {
-        for (let j = -1; j < 2; j++) {
-        let neighborX = x + i;
-        let neighborY = y + j;
+        for (let i = -1; i < 2; i++) {
+            for (let j = -1; j < 2; j++) {
+                let neighborX = x + i;
+                let neighborY = y + j;
 
-        if (i == 0 && j == 0) {
-            continue;
-        }
+                if (i == 0 && j == 0) {
+                    continue;
+                }
 
-        if (neighborX < 0 || neighborY < 0 || neighborY >= this.game.maxY || neighborX >= this.game.maxX) {
-            count = count + 1;
-        }
+                if (neighborX < 0 || neighborY < 0 || neighborY >= this.game.maxY || neighborX >= this.game.maxX) {
+                    count = count + 1;
+                }
 
-        else if (!oldGrid[neighborY][neighborX].isWall) {
-            count = count + 1;
+                else if (!oldGrid[neighborY][neighborX].isWall) {
+                    count = count + 1;
+                }
+            }
         }
-        }
-    }
-    return count;
+        return count;
     }
 }

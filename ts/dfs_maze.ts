@@ -12,6 +12,8 @@ const LEFT = 3;
 
 /**
  * Builds a maze using DFS.
+ * 
+ * Code here is kinda gross, but I don't really like the mazes it produces, anyway.
  */
 export class DfsMaze implements Maze {
     length: number = 0;
@@ -23,7 +25,7 @@ export class DfsMaze implements Maze {
 
     }
 
-    dfs(x, y) {
+    dfs(x: number, y: number) {
         let c: Cell = this.grid.getCell(x, y);
         if (this.length > GameConfig.DFS_PATH_SIZE || !c.isWall || this.getNeighbors(x, y).filter((x) => x === false).length > 1) {
             return;
