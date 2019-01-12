@@ -19,8 +19,8 @@ export class GameGrid {
     }
 
     public build() {
-        let m: Maze = new CAMaze(this.game, this);
-        //let m: Maze = new DfsMaze(this.game, this);
+        //let m: Maze = new CAMaze(this.game, this);
+        let m: Maze = new DfsMaze(this.game, this);
 
         m.build();
     }

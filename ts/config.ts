@@ -3,5 +3,5 @@ export const GameConfig = {
     CELL_SIZE: 20,
 
     // Length of the DFS path (for DFS mode).
-    DFS_PATH_SIZE: 1600,
+    DFS_PATH_SIZE: 2500,
 }
