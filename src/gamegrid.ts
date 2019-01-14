@@ -1,12 +1,10 @@
-///<reference types="pixi.js"/>
 
-import { Game } from "./game.js";
-import { Cell } from "./cell.js";
-import { Maze } from "./maze.js";
-import { CAMaze } from "./ca_maze.js";
-import { DfsMaze } from "./dfs_maze.js";
-import { GameConfig } from "./config.js";
-import * as PIXI from "pixi.js"
+import { Game } from "./game";
+import { Cell } from "./cell";
+import { Maze } from "./maze";
+import { CAMaze } from "./ca_maze";
+import { DfsMaze } from "./dfs_maze";
+import { GameConfig } from "./config";
 
 export class GameGrid {
     cells: Array<Array<Cell>> = [];

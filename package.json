@@ -10,10 +10,15 @@
     "typescript": "^3.2.2"
   },
   "devDependencies": {
-    "@types/pixi.js": "^4.8.6"
+    "@types/pixi.js": "^4.8.6",
+    "ts-loader": "^5.3.3",
+    "webpack": "^4.28.4",
+    "webpack-cli": "^3.2.1"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "develop": "webpack --mode development --watch",
+    "build": "webpack --mode production"
   },
   "repository": {
     "type": "git",

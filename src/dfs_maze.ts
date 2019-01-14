@@ -1,9 +1,9 @@
-import { Game } from "./game.js";
-import { GameGrid } from "./gamegrid.js";
-import { GameConfig } from "./config.js";
-import { Cell } from "./cell.js";
-import { Maze } from "./maze.js";
-import * as common from "./common.js";
+import { Game } from "./game";
+import { GameGrid } from "./gamegrid";
+import { GameConfig } from "./config";
+import { Cell } from "./cell";
+import { Maze } from "./maze";
+import * as common from "./common";
 
 const UP = 0;
 const RIGHT = 1;

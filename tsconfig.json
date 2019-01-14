@@ -1,12 +1,13 @@
 {
     "compilerOptions": {
-        "module": "es6",
+        "module": "commonjs",
         "target": "es2018",
         "sourceMap": true,
-        "outDir": "js",
-        "baseUrl": "."
+        "outDir": "./dist",
+        "baseUrl": ".",
+        "moduleResolution": "node"
     },
     "include": [
-        "ts/*"
+        "src/*"
     ]
 }
