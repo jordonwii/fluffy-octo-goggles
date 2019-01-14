@@ -30,16 +30,19 @@ export class GameGrid {
      * Render the game cells.
      */
     public render() {
-        let ctx = this.game.getContext();
-
         for (var y = 0; y < this.game.maxY; y++) {
             for (var x = 0; x < this.game.maxX; x++) {
                 let c = this.getCell(x, y);
-                ctx.fillStyle = c.colorString;
+                let sprite: PIXI.Sprite;
 
-                // Note: raw x and y values are scaled up in proportion to the width of walls. This lets us internally
-                // treat the grid as if each cell were a point, but give the actual displayed cell some width.
-                ctx.fillRect(x * GameConfig.CELL_SIZE, y * GameConfig.CELL_SIZE, GameConfig.CELL_SIZE, GameConfig.CELL_SIZE);
+                if (c.isWall) {
+                    sprite = this.game.addWall();
+                } else {
+                    sprite = this.game.addPath();
+                }
+
+                sprite.x = x*GameConfig.CELL_SIZE;
+                sprite.y = y*GameConfig.CELL_SIZE;
             }
         }
     }

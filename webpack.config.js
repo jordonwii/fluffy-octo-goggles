@@ -1,17 +1,16 @@
 const path = require('path');
 
 module.exports = {
-  entry: './src/main.ts',
-  devtool: 'inline-source-map',
-  module: {
+    entry: './src/main.ts',
+    devtool: 'inline-source-map',
+    module: {
         rules: [
             {
-                test: /\.(png|svg|jpg|gif)$/,
+                test: /\.(png|svg|jpg|jpeg|gif)$/,
                 use: [
                     'file-loader'
                 ]
             },
-
             {
                 test: /\.tsx?$/,
                 use: 'ts-loader',
