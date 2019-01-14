@@ -1,9 +1,12 @@
+///<reference types="pixi.js"/>
+
 import { Game } from "./game.js";
 import { Cell } from "./cell.js";
 import { Maze } from "./maze.js";
 import { CAMaze } from "./ca_maze.js";
 import { DfsMaze } from "./dfs_maze.js";
 import { GameConfig } from "./config.js";
+import * as PIXI from "pixi.js"
 
 export class GameGrid {
     cells: Array<Array<Cell>> = [];

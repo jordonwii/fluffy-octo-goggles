@@ -1,5 +1,8 @@
+///<reference types="pixi.js"/>
+
 import {GameGrid} from "./gamegrid.js";
 import {GameConfig} from "./config.js";
+import * as PIXI from "pixi.js"
 
 
 /**
