@@ -1,4 +1,4 @@
-import {Game} from "./game.js";
+import {Game} from "./game";
 
 // Gives us access to the game for debugging.
 // TODO (probably?) delete this for anything real.

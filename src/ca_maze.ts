@@ -1,8 +1,8 @@
-import { Game } from "./game.js";
-import { GameGrid } from "./gamegrid.js";
-import { Cell } from "./cell.js";
-import { Maze } from "./maze.js";
-import * as common from "./common.js";
+import { Game } from "./game";
+import { GameGrid } from "./gamegrid";
+import { Cell } from "./cell";
+import { Maze } from "./maze";
+import * as common from "./common";
 
 /**
  * Builds a maze using the cellular automata method.

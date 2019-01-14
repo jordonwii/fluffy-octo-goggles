@@ -1,5 +1,6 @@
-import {GameGrid} from "./gamegrid.js";
-import {GameConfig} from "./config.js";
+import {GameGrid} from "./gamegrid";
+import {GameConfig} from "./config";
+import * as PIXI from "pixi.js"; 
 
 
 /**
