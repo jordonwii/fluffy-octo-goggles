@@ -1,7 +1,7 @@
 import {GameGrid} from "./gamegrid";
 import {GameConfig} from "./config";
 import * as PIXI from "pixi.js"; 
-import * as sandTexture from "./assets/sand.jpg";
+import * as sandTexture from "./assets/path.jpg";
 import * as wallTexture from "./assets/wall.jpg";
 
 
