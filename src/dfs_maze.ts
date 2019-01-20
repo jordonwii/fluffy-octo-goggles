@@ -21,7 +21,7 @@ export class DfsMaze implements Maze {
     constructor(private game: Game, private grid: GameGrid) { }
 
     build() {
-        this.dfs(common.rand(this.game.maxX-1), common.rand(this.game.maxY-1));
+        this.dfs(common.rand(this.game.maxX - 1), common.rand(this.game.maxY - 1));
 
     }
 
@@ -83,7 +83,7 @@ export class DfsMaze implements Maze {
         let result: Array<Cell> = [];
 
         if (x > 0)
-            result.push(this.grid.getCell(x-1, y));
+            result.push(this.grid.getCell(x - 1, y));
         if (x + 1 < this.game.maxX)
             result.push(this.grid.getCell(x + 1, y));
         if (y > 0)

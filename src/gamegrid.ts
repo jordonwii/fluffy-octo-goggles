@@ -48,8 +48,8 @@ export class GameGrid {
                 }
 
                 this.gridContainer.addChild(sprite);
-                sprite.x = x*GameConfig.CELL_SIZE;
-                sprite.y = y*GameConfig.CELL_SIZE;
+                sprite.x = x * GameConfig.CELL_SIZE;
+                sprite.y = y * GameConfig.CELL_SIZE;
             }
         }
     }
