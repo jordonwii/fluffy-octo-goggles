@@ -8,13 +8,14 @@ import { GameConfig } from "./config";
 
 export class GameGrid {
     cells: Array<Array<Cell>> = [];
+    gridContainer: PIXI.Container;
 
     constructor(private game: Game) {
         for (let y = 0; y < game.maxY; y++) {
             this.cells[y] = new Array<Cell>(game.maxX);
 
             for (let x = 0; x < game.maxX; x++) {
-                this.cells[y][x] = new Cell(true);
+                this.cells[y][x] = new Cell(x, y, true);
             }
         }
     }
@@ -24,6 +25,11 @@ export class GameGrid {
         let m: Maze = new DfsMaze(this.game, this);
 
         m.build();
+    }
+
+    public init() {
+        this.gridContainer = new PIXI.Container();
+        this.game.app.stage.addChild(this.gridContainer);
     }
 
     /**
@@ -41,6 +47,7 @@ export class GameGrid {
                     sprite = this.game.addPath();
                 }
 
+                this.gridContainer.addChild(sprite);
                 sprite.x = x*GameConfig.CELL_SIZE;
                 sprite.y = y*GameConfig.CELL_SIZE;
             }
@@ -48,6 +55,9 @@ export class GameGrid {
     }
 
     public getCell(x: number, y: number): Cell {
+        if (y > this.cells.length - 1 || x > this.cells[y].length - 1) {
+            return null;
+        }
         return this.cells[y][x];
     }
 
