@@ -1,8 +1,12 @@
-import {GameGrid} from "./gamegrid";
-import {GameConfig} from "./config";
-import * as PIXI from "pixi.js"; 
+import { GameGrid } from "./gamegrid";
+import { Player } from "./player";
+import { GameConfig } from "./config";
+import * as PIXI from "pixi.js";
 import * as sandTexture from "./assets/path.jpg";
 import * as wallTexture from "./assets/wall.jpg";
+import * as pacmanOpen from "./assets/pacman_open.png";
+import * as pacmanClosed from "./assets/pacman_closed.png";
+import { Orientation } from "./orientation";
 
 
 /**
@@ -12,11 +16,13 @@ export class Game {
     maxY: number;
     maxX: number;
     grid: GameGrid;
+    player: Player;
     app: PIXI.Application;
 
     constructor() {
         this.initPixi();
         this.grid = new GameGrid(this);
+        this.player = new Player(this);
     }
 
     public buildMaze() {
@@ -29,20 +35,70 @@ export class Game {
         PIXI.loader
             .add(sandTexture)
             .add(wallTexture)
-            .load(callback);
+            .add(pacmanOpen)
+            .add(pacmanClosed)
+            .load(function () {
+                this.initLoadComplete(callback);
+            }.bind(this));
+    }
 
+    private initLoadComplete(callback: Function) {
+        this.grid.init();
+        this.player.init();
+        this.grid.render();
+
+        this.addEventHandlers();
+        this.app.ticker.add(this.render.bind(this));
+
+        callback();
     }
 
     public addPath(): PIXI.Sprite {
-        return this.addSprite(sandTexture.toString())
+        return this.addSprite(sandTexture.toString());
     }
 
     public addWall(): PIXI.Sprite {
-        return this.addSprite(wallTexture.toString())
+        return this.addSprite(wallTexture.toString());
+    }
+
+    public addPlayer(): PIXI.extras.AnimatedSprite {
+        let sprite = new PIXI.extras.AnimatedSprite([
+            PIXI.loader.resources[pacmanOpen.toString()].texture,
+            PIXI.loader.resources[pacmanClosed.toString()].texture
+        ]);
+        sprite.width = GameConfig.CELL_SIZE;
+        sprite.height = GameConfig.CELL_SIZE;
+        return sprite;
     }
 
     render() {
-        this.grid.render();
+        this.player.render();
+    }
+
+    private addEventHandlers() {
+        window.addEventListener("keydown", this.handleKeyDown.bind(this));
+    }
+
+    private handleKeyDown(e: KeyboardEvent) {
+        let o: Orientation = Orientation.NONE;
+        switch (e.key) {
+            case "ArrowUp":
+                o = Orientation.UP;
+                break;
+            case "ArrowDown":
+                o = Orientation.DOWN;
+                break;
+            case "ArrowLeft":
+                o = Orientation.LEFT;
+                break;
+            case "ArrowRight":
+                o = Orientation.RIGHT;
+                break;
+        }
+
+        if (o != Orientation.NONE) {
+            this.player.setNextOrientation(o);
+        }
     }
 
     private addSprite(texture: string): PIXI.Sprite {
@@ -51,8 +107,6 @@ export class Game {
         );
         sprite.width = GameConfig.CELL_SIZE;
         sprite.height = GameConfig.CELL_SIZE;
-
-        this.app.stage.addChild(sprite);
         return sprite;
 
     }

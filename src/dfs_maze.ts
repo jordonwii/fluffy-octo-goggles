@@ -21,13 +21,13 @@ export class DfsMaze implements Maze {
     constructor(private game: Game, private grid: GameGrid) { }
 
     build() {
-        this.dfs(common.rand(this.game.maxX-1), common.rand(this.game.maxY-1));
+        this.dfs(common.rand(this.game.maxX - 1), common.rand(this.game.maxY - 1));
 
     }
 
     dfs(x: number, y: number) {
         let c: Cell = this.grid.getCell(x, y);
-        if (this.length > GameConfig.DFS_PATH_SIZE || !c.isWall || this.getNeighbors(x, y).filter((x) => x === false).length > 1) {
+        if (this.length > GameConfig.DFS_PATH_SIZE || c === null || !c.isWall || this.getNeighbors(x, y).filter((x) => x === null || x.isWall === false).length > 1) {
             return;
         }
 
@@ -79,17 +79,17 @@ export class DfsMaze implements Maze {
         return;
     }
 
-    getNeighbors(x, y) {
-        var result = [];
+    getNeighbors(x, y): Array<Cell> {
+        let result: Array<Cell> = [];
 
         if (x > 0)
-            result.push(this.grid.getCell(x-1, y).isWall);
+            result.push(this.grid.getCell(x - 1, y));
         if (x + 1 < this.game.maxX)
-            result.push(this.grid.getCell(x + 1, y).isWall);
+            result.push(this.grid.getCell(x + 1, y));
         if (y > 0)
-            result.push(this.grid.getCell(x, y - 1).isWall);
+            result.push(this.grid.getCell(x, y - 1));
         if (y + 1 < this.game.maxY)
-            result.push(this.grid.getCell(x, y + 1).isWall);
+            result.push(this.grid.getCell(x, y + 1));
         return result;
     }
 }

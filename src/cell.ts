@@ -7,7 +7,7 @@ export class Cell {
     colorString: string;
     _isWall: boolean;
 
-    constructor(isWall: boolean) {
+    constructor(private x: number, private y: number, isWall: boolean) {
         this.isWall = isWall;
     }
 
@@ -18,6 +18,14 @@ export class Cell {
     set isWall(isWall: boolean) {
         this.colorString = isWall ? "#000000" : "#FFFFFF";
         this._isWall = isWall;
+    }
+
+    getX(): number {
+        return this.x;
+    }
+
+    getY(): number {
+        return this.y;
     }
 
     setColor(r: number, g: number, b: number) {
