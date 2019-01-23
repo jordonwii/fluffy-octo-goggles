@@ -1,4 +1,5 @@
 *.swp
 *.swo
 node_modules/
-dist/bundle.js
+dist/*.js
+dist/*.jpg

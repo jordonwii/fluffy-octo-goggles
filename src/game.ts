@@ -1,6 +1,8 @@
 import {GameGrid} from "./gamegrid";
 import {GameConfig} from "./config";
 import * as PIXI from "pixi.js"; 
+import * as sandTexture from "./assets/path.jpg";
+import * as wallTexture from "./assets/wall.jpg";
 
 
 /**
@@ -10,10 +12,10 @@ export class Game {
     maxY: number;
     maxX: number;
     grid: GameGrid;
+    app: PIXI.Application;
 
-    constructor(private canvas: HTMLCanvasElement, private ctx: CanvasRenderingContext2D) {
-        this.initCanvas();
-
+    constructor() {
+        this.initPixi();
         this.grid = new GameGrid(this);
     }
 
@@ -21,32 +23,49 @@ export class Game {
         this.grid.build();
     }
 
-    render() {
-        this.ctx.fillStyle = "#000000";
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    public init(callback: Function) {
+        window.document.body.appendChild(this.app.view);
 
+        PIXI.loader
+            .add(sandTexture)
+            .add(wallTexture)
+            .load(callback);
+
+    }
+
+    public addPath(): PIXI.Sprite {
+        return this.addSprite(sandTexture.toString())
+    }
+
+    public addWall(): PIXI.Sprite {
+        return this.addSprite(wallTexture.toString())
+    }
+
+    render() {
         this.grid.render();
     }
 
-    getContext(): CanvasRenderingContext2D {
-        return this.ctx;
+    private addSprite(texture: string): PIXI.Sprite {
+        let sprite = new PIXI.Sprite(
+            PIXI.loader.resources[texture].texture
+        );
+        sprite.width = GameConfig.CELL_SIZE;
+        sprite.height = GameConfig.CELL_SIZE;
+
+        this.app.stage.addChild(sprite);
+        return sprite;
+
     }
 
-    /**
-     * Initializes the canvas.
-     */
-    private initCanvas() {
-        // Scale up the canvas by the DPR, then scale back down with CSS.
-        // www.html5rocks.com/en/tutorials/canvas/hidpi
-        var dpr = window.devicePixelRatio || 1;
+    private initPixi() {
+        this.app = new PIXI.Application({
+            backgroundColor: 0,
+            autoResize: true,
+        });
 
-        this.canvas.width = window.innerWidth * dpr;
-        this.canvas.height = window.innerHeight * dpr;
-
-        this.canvas.style.width = window.innerWidth + "px";
-        this.canvas.style.height = window.innerHeight + "px";
-
-        this.ctx.scale(dpr, dpr);
+        this.app.renderer.view.style.position = "absolute";
+        this.app.renderer.view.style.display = "block";
+        this.app.renderer.resize(window.innerWidth, window.innerHeight);
 
         this.maxX = Math.round(window.innerWidth / GameConfig.CELL_SIZE);
         this.maxY = Math.round(window.innerHeight / GameConfig.CELL_SIZE);
