@@ -1,6 +1,4 @@
 *.swp
 *.swo
 node_modules/
-dist/*.js
-dist/*.jpg
-dist/*.png
+dist/
