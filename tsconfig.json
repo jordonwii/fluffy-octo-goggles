@@ -2,12 +2,13 @@
     "compilerOptions": {
         "module": "commonjs",
         "target": "es2018",
+        "esModuleInterop": true,
         "sourceMap": true,
         "outDir": "./dist",
         "baseUrl": ".",
         "moduleResolution": "node"
     },
     "include": [
-        "src/client/*"
+        "src/**/*"
     ]
 }
