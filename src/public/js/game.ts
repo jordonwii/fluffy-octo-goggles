@@ -2,10 +2,10 @@ import { GameGrid } from "./gamegrid";
 import { Player } from "./player";
 import { GameConfig } from "./config";
 import * as PIXI from "pixi.js";
-import * as sandTexture from "./assets/path.jpg";
-import * as wallTexture from "./assets/wall.jpg";
-import * as pacmanOpen from "./assets/pacman_open.png";
-import * as pacmanClosed from "./assets/pacman_closed.png";
+let sandTexture = "../assets/path.jpg";
+let wallTexture = "../assets/wall.jpg";
+let pacmanOpen = "../assets/pacman_open.png";
+let pacmanClosed = "../assets/pacman_closed.png";
 import { Orientation } from "./orientation";
 
 
