@@ -4,7 +4,6 @@ import {Game} from "./game";
 // TODO (probably?) delete this for anything real.
 var game;
 window.addEventListener("DOMContentLoaded", function() {
-  alert("omfg")
   let game: Game = new Game();
   game.buildMaze();
   game.init(function() {
