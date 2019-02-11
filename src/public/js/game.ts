@@ -3,6 +3,7 @@ import { Player } from "./player";
 import { GameConfig } from "./config";
 import * as PIXI from "pixi.js";
 import { Orientation } from "./orientation";
+import { SocketService } from "./socket_service";
 
 const sandTexture = "../assets/path.jpg";
 const wallTexture = "../assets/wall.jpg";
@@ -16,13 +17,15 @@ export class Game {
     maxY: number;
     maxX: number;
     grid: GameGrid;
-    player: Player;
+    players: Array<Player>;
     app: PIXI.Application;
+    socketService: SocketService;
 
     constructor() {
         this.initPixi();
         this.grid = new GameGrid(this);
-        this.player = new Player(this);
+        this.players = new Array<Player>();
+        this.players.push(new Player(this));
     }
 
     public buildMaze() {
@@ -40,15 +43,21 @@ export class Game {
             .load(function () {
                 this.initLoadComplete(callback);
             }.bind(this));
+
+        this.socketService = new SocketService(this);
+        
+
     }
 
     private initLoadComplete(callback: Function) {
         this.grid.init();
-        this.player.init();
+        this.players[0].init();
         this.grid.render();
 
         this.addEventHandlers();
         this.app.ticker.add(this.render.bind(this));
+
+        this.socketService.addAsNewPlayer();
 
         callback();
     }
@@ -71,8 +80,19 @@ export class Game {
         return sprite;
     }
 
+    public handleNewPlayer(data) {
+        console.log("got new player", data);
+        let p:Player = new Player(this);
+        this.players.push(p)
+        p.init();
+        p.currentCell = this.grid.getCell(data.x, data.y);
+    }
+
     render() {
-        this.player.render();
+        for (let p of this.players) {
+            p.render();
+
+        }
     }
 
     private addEventHandlers() {
@@ -97,7 +117,7 @@ export class Game {
         }
 
         if (o != Orientation.NONE) {
-            this.player.setNextOrientation(o);
+            this.players[0].setNextOrientation(o);
         }
     }
 
