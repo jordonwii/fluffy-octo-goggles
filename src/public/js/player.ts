@@ -1,9 +1,9 @@
-import { GameGrid } from "./gamegrid";
+import { RenderableGameGrid } from "./renderablegamegrid";
 import * as PIXI from "pixi.js";
-import { Cell } from "./cell";
+import { Cell } from "../../shared/cell";
 import { Game } from "./game";
 import { rand } from "./common";
-import { GameConfig } from "./config";
+import { GameConfig } from "../../shared/config";
 import { Orientation } from "./orientation";
 
 export class Player {
@@ -28,7 +28,7 @@ export class Player {
         this.sprite.play();
 
 
-        let grid: GameGrid = this.game.grid;
+        let grid: RenderableGameGrid = this.game.grid;
 
         // Pick some random starting point.
         let haveValidPos = false;

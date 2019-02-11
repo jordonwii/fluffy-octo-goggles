@@ -1,9 +1,8 @@
-import { Game } from "./game";
 import { GameGrid } from "./gamegrid";
 import { GameConfig } from "./config";
 import { Cell } from "./cell";
 import { Maze } from "./maze";
-import * as common from "./common";
+import * as common from "../public/js/common";
 
 const UP = 0;
 const RIGHT = 1;
@@ -18,10 +17,10 @@ const LEFT = 3;
 export class DfsMaze implements Maze {
     length: number = 0;
 
-    constructor(private game: Game, private grid: GameGrid) { }
+    constructor(private grid: GameGrid) { }
 
     build() {
-        this.dfs(common.rand(this.game.maxX - 1), common.rand(this.game.maxY - 1));
+        this.dfs(common.rand(this.grid.getMaxX() - 1), common.rand(this.grid.getMaxY() - 1));
 
     }
 
@@ -38,7 +37,7 @@ export class DfsMaze implements Maze {
             possibleDirs.push(UP);
         }
 
-        if (y + 1 < this.game.maxY) {
+        if (y + 1 < this.grid.getMaxY()) {
             possibleDirs.push(DOWN);
         }
 
@@ -46,7 +45,7 @@ export class DfsMaze implements Maze {
             possibleDirs.push(LEFT);
         }
 
-        if (x + 1 < this.game.maxX) {
+        if (x + 1 < this.grid.getMaxX()) {
             possibleDirs.push(RIGHT);
         }
         if (possibleDirs.length == 0) {
@@ -84,11 +83,11 @@ export class DfsMaze implements Maze {
 
         if (x > 0)
             result.push(this.grid.getCell(x - 1, y));
-        if (x + 1 < this.game.maxX)
+        if (x + 1 < this.grid.getMaxX())
             result.push(this.grid.getCell(x + 1, y));
         if (y > 0)
             result.push(this.grid.getCell(x, y - 1));
-        if (y + 1 < this.game.maxY)
+        if (y + 1 < this.grid.getMaxY())
             result.push(this.grid.getCell(x, y + 1));
         return result;
     }

@@ -1,6 +1,6 @@
-import { GameGrid } from "./gamegrid";
+import { RenderableGameGrid } from "./renderablegamegrid";
 import { Player } from "./player";
-import { GameConfig } from "./config";
+import { GameConfig } from "../../shared/config";
 import * as PIXI from "pixi.js";
 import { Orientation } from "./orientation";
 import { SocketService } from "./socket_service";
@@ -16,14 +16,14 @@ const pacmanClosed = "../assets/pacman_closed.png";
 export class Game {
     maxY: number;
     maxX: number;
-    grid: GameGrid;
+    grid: RenderableGameGrid;
     players: Array<Player>;
     app: PIXI.Application;
     socketService: SocketService;
 
     constructor() {
         this.initPixi();
-        this.grid = new GameGrid(this);
+        this.grid = new RenderableGameGrid(this);
         this.players = new Array<Player>();
         this.players.push(new Player(this));
     }
