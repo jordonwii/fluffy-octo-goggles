@@ -4,20 +4,35 @@ import { DfsMaze } from "./dfs_maze";
 
 export class GameGrid {
     cells: Array<Array<Cell>> = [];
+    isBuilt: boolean = false;
 
-    constructor(private maxX: number, private maxY: number) {
-        for (let y = 0; y < maxY; y++) {
-            this.cells[y] = new Array<Cell>(maxX);
+    constructor(private maxX: number, private maxY: number, cellArray?: Cell[][]) {
+        if (cellArray !== undefined && (cellArray.length !== maxY || cellArray[0].length !== maxX)) {
+            throw new TypeError("Max dimensions don't match actual array dimensions: provided: (" + maxX + ", " + maxY + ") actual: (" + cellArray[0].length + ", " + cellArray.length + ").");
+        }
 
-            for (let x = 0; x < maxX; x++) {
-                this.cells[y][x] = new Cell(x, y, true);
+        if (cellArray !== undefined) {
+            this.cells = Array.from(cellArray);
+            this.isBuilt = true;
+        } else {
+            for (let y = 0; y < maxY; y++) {
+                this.cells[y] = new Array<Cell>(maxX);
+
+                for (let x = 0; x < maxX; x++) {
+                    this.cells[y][x] = new Cell(x, y, true);
+                }
             }
         }
     }
 
     public build() {
+        if (this.isBuilt) {
+            return;
+        }
         let m: Maze = new DfsMaze(this);
         m.build();
+
+        this.isBuilt = true;
     }
 
     public getCell(x: number, y: number): Cell {

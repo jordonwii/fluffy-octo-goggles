@@ -4,6 +4,7 @@ import { GameConfig } from "../../shared/config";
 import * as PIXI from "pixi.js";
 import { Orientation } from "./orientation";
 import { SocketService } from "./socket_service";
+import { Cell } from "src/shared/cell";
 
 const sandTexture = "../assets/path.jpg";
 const wallTexture = "../assets/wall.jpg";
@@ -23,13 +24,8 @@ export class Game {
 
     constructor() {
         this.initPixi();
-        this.grid = new RenderableGameGrid(this);
         this.players = new Array<Player>();
         this.players.push(new Player(this));
-    }
-
-    public buildMaze() {
-        this.grid.build();
     }
 
     public init(callback: Function) {
@@ -88,6 +84,11 @@ export class Game {
         p.currentCell = this.grid.getCell(data.x, data.y);
     }
 
+    public handleMap(data: Cell[][]) {
+        console.log("Got a new map: ", data);
+        this.grid = new RenderableGameGrid(this, data);
+    }
+
     render() {
         for (let p of this.players) {
             p.render();
@@ -141,7 +142,7 @@ export class Game {
         this.app.renderer.view.style.display = "block";
         this.app.renderer.resize(window.innerWidth, window.innerHeight);
 
-        this.maxX = Math.round(window.innerWidth / GameConfig.CELL_SIZE);
-        this.maxY = Math.round(window.innerHeight / GameConfig.CELL_SIZE);
+        this.maxX = Math.floor(GameConfig.RENDERED_MAZE_WIDTH / GameConfig.CELL_SIZE);
+        this.maxY = Math.floor(GameConfig.RENDERED_MAZE_HEIGHT / GameConfig.CELL_SIZE);
     }
 }

@@ -7,8 +7,8 @@ import { GameConfig } from "../../shared/config";
 export class RenderableGameGrid extends GameGrid {
     gridContainer: PIXI.Container;
 
-    constructor(private game: Game) {
-        super(game.maxX, game.maxY);
+    constructor(private game: Game, cellArray: Cell[][]) {
+        super(game.maxX, game.maxY, cellArray);
     }
 
     public init() {
