@@ -1,7 +1,7 @@
 import { RenderableGameGrid } from "./renderablegamegrid";
 import * as PIXI from "pixi.js";
 import { Cell } from "../../shared/cell";
-import { Game } from "./game";
+import { Game, TOP_OFFSET, LEFT_OFFSET } from "./game";
 import { rand } from "./common";
 import { GameConfig } from "../../shared/config";
 import { Orientation } from "./orientation";
@@ -21,27 +21,36 @@ export class Player {
         let bounds = this.sprite.getBounds();
         this.sprite.pivot.set(bounds.width / 2 / this.sprite.scale.x, bounds.height / 2 / this.sprite.scale.y);
 
-        this.game.app.stage.addChild(this.sprite);
+        let playerContainer = new PIXI.Container();
+        playerContainer.x = LEFT_OFFSET;
+        playerContainer.y = TOP_OFFSET;
+        playerContainer.addChild(this.sprite);
+        this.game.app.stage.addChild(playerContainer);
 
         this.sprite.loop = true;
         this.sprite.animationSpeed = GameConfig.PACMAN_ANIMATION_SPEED;
         this.sprite.play();
+    }
 
-
+    setPosition(x?: number, y?: number) {
         let grid: RenderableGameGrid = this.game.grid;
+        if (!x || !y) {
+            // Pick some random starting point.
+            let haveValidPos = false;
+            while (!haveValidPos) {
+                let x = rand(this.game.maxX - 1);
+                let y = rand(this.game.maxY - 1);
 
-        // Pick some random starting point.
-        let haveValidPos = false;
-        while (!haveValidPos) {
-            let x = rand(this.game.maxX - 1);
-            let y = rand(this.game.maxY - 1);
-
-            let cell: Cell = grid.getCell(x, y);
-            if (!cell.isWall) {
-                haveValidPos = true;
-                this.currentCell = cell;
+                let cell: Cell = grid.getCell(x, y);
+                if (!cell.isWall) {
+                    haveValidPos = true;
+                    this.currentCell = cell;
+                }
             }
+        } else {
+            this.currentCell = grid.getCell(x, y);
         }
+
         this.sprite.x = this.scaleCellValue(this.currentCell.getX());
         this.sprite.y = this.scaleCellValue(this.currentCell.getY());
     }
@@ -86,6 +95,7 @@ export class Player {
                 this.currentOrientation = prevOrientation;
                 return;
             }
+            this.game.updateToNewOrientation(this.currentOrientation);
 
             // Start animating to the next cell.
             this.rotateToOrientation();

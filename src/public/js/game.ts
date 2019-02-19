@@ -5,11 +5,15 @@ import * as PIXI from "pixi.js";
 import { Orientation } from "./orientation";
 import { SocketService } from "./socket_service";
 import { Cell } from "src/shared/cell";
+import { stringify } from "querystring";
 
 const sandTexture = "../assets/path.jpg";
 const wallTexture = "../assets/wall.jpg";
 const pacmanOpen = "../assets/pacman_open.png";
 const pacmanClosed = "../assets/pacman_closed.png";
+
+export const TOP_OFFSET = Math.round(window.innerHeight - GameConfig.RENDERED_MAZE_HEIGHT) / 2;
+export const LEFT_OFFSET = Math.round(window.innerWidth - GameConfig.RENDERED_MAZE_WIDTH) / 2;
 
 /**
  * Class for managing the game. Assumes the document is ready at construction time.
@@ -18,44 +22,51 @@ export class Game {
     maxY: number;
     maxX: number;
     grid: RenderableGameGrid;
-    players: Array<Player>;
+    mainPlayer: Player;
+    otherPlayers: Map<string, Player>;
     app: PIXI.Application;
     socketService: SocketService;
 
     constructor() {
         this.initPixi();
-        this.players = new Array<Player>();
-        this.players.push(new Player(this));
-    }
-
-    public init(callback: Function) {
-        window.document.body.appendChild(this.app.view);
-
-        PIXI.loader
-            .add(sandTexture)
-            .add(wallTexture)
-            .add(pacmanOpen)
-            .add(pacmanClosed)
-            .load(function () {
-                this.initLoadComplete(callback);
-            }.bind(this));
-
         this.socketService = new SocketService(this);
-        
-
+        this.mainPlayer = new Player(this);
+        this.otherPlayers = new Map<string, Player>();
     }
 
-    private initLoadComplete(callback: Function) {
-        this.grid.init();
-        this.players[0].init();
-        this.grid.render();
+    public init(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            let texturePromise = this.initTextures();
+            let socketPromise = this.socketService.init()
 
-        this.addEventHandlers();
-        this.app.ticker.add(this.render.bind(this));
+            Promise.all([texturePromise, socketPromise]).then(() => {
+                this.socketService.addAsNewPlayer();
+                resolve();
+            });
+        });
+    }
 
-        this.socketService.addAsNewPlayer();
+    private initTextures(): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            window.document.body.appendChild(this.app.view);
 
-        callback();
+            PIXI.loader
+                .add(sandTexture)
+                .add(wallTexture)
+                .add(pacmanOpen)
+                .add(pacmanClosed)
+                .load(() => {
+                    this.grid.init();
+                    this.mainPlayer.init();
+                    this.mainPlayer.setPosition();
+                    this.grid.render();
+
+                    this.addEventHandlers();
+                    this.app.ticker.add(this.render.bind(this));
+                    resolve();
+                });
+        })
+
     }
 
     public addPath(): PIXI.Sprite {
@@ -78,10 +89,10 @@ export class Game {
 
     public handleNewPlayer(data) {
         console.log("got new player", data);
-        let p:Player = new Player(this);
-        this.players.push(p)
+        let p: Player = new Player(this);
+        this.otherPlayers.set(data.id, p);
         p.init();
-        p.currentCell = this.grid.getCell(data.x, data.y);
+        p.setPosition(data.x, data.y);
     }
 
     public handleMap(data: Cell[][]) {
@@ -89,8 +100,17 @@ export class Game {
         this.grid = new RenderableGameGrid(this, data);
     }
 
+    public updateToNewOrientation(o: Orientation) {
+        this.socketService.updateOrientation(o);
+    }
+
+    public updatePlayerOrientation(id: string, o: Orientation) {
+        this.otherPlayers.get(id).setNextOrientation(o);
+    }
+
     render() {
-        for (let p of this.players) {
+        this.mainPlayer.render();
+        for (let p of this.otherPlayers.values()) {
             p.render();
 
         }
@@ -118,7 +138,7 @@ export class Game {
         }
 
         if (o != Orientation.NONE) {
-            this.players[0].setNextOrientation(o);
+            this.mainPlayer.setNextOrientation(o);
         }
     }
 

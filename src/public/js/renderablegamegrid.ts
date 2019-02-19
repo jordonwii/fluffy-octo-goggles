@@ -1,8 +1,9 @@
 
-import { Game } from "./game";
+import { Game, TOP_OFFSET, LEFT_OFFSET } from "./game";
 import { Cell } from "../../shared/cell";
 import { GameGrid } from "../../shared/gamegrid";
 import { GameConfig } from "../../shared/config";
+
 
 export class RenderableGameGrid extends GameGrid {
     gridContainer: PIXI.Container;
@@ -13,6 +14,8 @@ export class RenderableGameGrid extends GameGrid {
 
     public init() {
         this.gridContainer = new PIXI.Container();
+        this.gridContainer.x = LEFT_OFFSET;
+        this.gridContainer.y = TOP_OFFSET;
         this.game.app.stage.addChild(this.gridContainer);
     }
 

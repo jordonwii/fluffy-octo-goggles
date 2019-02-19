@@ -4,6 +4,7 @@ import { createServer, Server } from 'http';
 import app from "./app";
 import { MapManager } from "./map_manager";
 import { GameGrid } from "./shared/gamegrid";
+import { Cell } from "./shared/cell";
 
 /**
  * Error Handler. Provides full stack - remove for production
@@ -38,6 +39,10 @@ function startServer() {
       console.log("setup finished: ", m);
       socket.broadcast.emit('new player', { "id": socket.id, "x": m.pos.x, "y": m.pos.y });
     });
+
+    socket.on('o update', (o) => {
+      socket.broadcast.emit('o update', { "id": socket.id, "o": o});
+    })
 
     socket.on('disconnect', () => {
       console.log('Client disconnected');
