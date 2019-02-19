@@ -45,7 +45,7 @@ function startServer() {
     }
 
     io.emit('states', out);
-  }, 500)
+  }, 100)
 
   io.on('connect', (socket: any) => {
     console.log('Connected client.');
@@ -58,7 +58,10 @@ function startServer() {
 
     socket.on('state update', (ps: PlayerState) => {
       console.log("Got state update for id %s: %s", socket.id, ps);
-      states.set(socket.id, ps);
+      states.set(socket.id, new PlayerState(
+        ps.orientation,
+        new Point(ps.p.x, ps.p.y)
+      ));
     })
 
     socket.on('disconnect', () => {
