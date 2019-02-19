@@ -3,10 +3,13 @@ import { Game } from "./game";
 import { MapUtils } from "../../shared/map_utils";
 import { Cell } from "src/shared/cell";
 import { Orientation } from "./orientation";
+import { PlayerState } from "../../shared/player_state";
 
 const SERVER_URL:string = "http://localhost:3000";
 
-interface PositionUpdate { id: string, o: Orientation};
+export interface StateUpdate {
+    [index: string]: PlayerState;
+}
 
 export class SocketService {
     private socket: SocketIOClient.Socket
@@ -17,10 +20,15 @@ export class SocketService {
             this.socket = sio.connect(SERVER_URL);
 
             this.socket.on("connect", () => resolve(this));
+            this.socket.on("disconnect client", this.handleDisconnect.bind(this));
             this.socket.on("new player", this.handleNewPlayer.bind(this));
             this.socket.on("map", this.handleMap.bind(this));
-            this.socket.on("o update", this.handleOrientationUpdate.bind(this));
+            this.socket.on("states", this.handleStateUpdate.bind(this));
         }.bind(this));
+    }
+
+    getId() {
+        return this.socket.id;
     }
 
     addAsNewPlayer() {
@@ -35,12 +43,16 @@ export class SocketService {
         this.game.handleMap(MapUtils.wallArrayToCellArray(map));
     }
 
-    updateOrientation(o: Orientation) {
-        this.socket.emit("o update", o);
+    updatePlayerState(ps: PlayerState) {
+        this.socket.emit("state update", ps);
     }
 
-    handleOrientationUpdate(data: PositionUpdate) {
-        console.log("received updated orientation for: ", data.id);
-        this.game.updatePlayerOrientation(data.id, data.o);
+    handleDisconnect(id: string) {
+        this.game.removePlayer(id);
+    }
+
+    handleStateUpdate(states: StateUpdate & object) {
+        console.log("received updated states: ", states);
+        this.game.updateStates(states);
     }
 }

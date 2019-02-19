@@ -5,6 +5,8 @@ import app from "./app";
 import { MapManager } from "./map_manager";
 import { GameGrid } from "./shared/gamegrid";
 import { Cell } from "./shared/cell";
+import { PlayerState, Point } from "./shared/player_state";
+import { Orientation } from "./public/js/orientation";
 
 /**
  * Error Handler. Provides full stack - remove for production
@@ -22,6 +24,8 @@ let mapPromise = mapManager.initMap();
 
 mapPromise.then(startServer);
 
+let states: Map<string, PlayerState> = new Map<string, PlayerState>();
+
 function startServer() {
   server.listen(app.get("port"), () => {
     console.log(
@@ -32,20 +36,35 @@ function startServer() {
     console.log("  Press CTRL-C to stop\n");
   });
 
+  setInterval(() => {
+    console.log("states: ", states);
+    let out = {}
+
+    for (let [id, ps] of states.entries()) {
+      out[id] = ps;
+    }
+
+    io.emit('states', out);
+  }, 500)
+
   io.on('connect', (socket: any) => {
     console.log('Connected client.');
     socket.emit('map', mapManager.wallArray);
     socket.on('setup finished', (m) => {
       console.log("setup finished: ", m);
+      states.set(socket.id, new PlayerState(Orientation.NONE, new Point(m.pos.x, m.pos.y)))
       socket.broadcast.emit('new player', { "id": socket.id, "x": m.pos.x, "y": m.pos.y });
     });
 
-    socket.on('o update', (o) => {
-      socket.broadcast.emit('o update', { "id": socket.id, "o": o});
+    socket.on('state update', (ps: PlayerState) => {
+      console.log("Got state update for id %s: %s", socket.id, ps);
+      states.set(socket.id, ps);
     })
 
     socket.on('disconnect', () => {
       console.log('Client disconnected');
+      states.delete(socket.id);
+      socket.broadcast.emit('disconnect client', socket.id);
     });
   });
 }

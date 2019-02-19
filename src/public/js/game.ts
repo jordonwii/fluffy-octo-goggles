@@ -3,9 +3,9 @@ import { Player } from "./player";
 import { GameConfig } from "../../shared/config";
 import * as PIXI from "pixi.js";
 import { Orientation } from "./orientation";
-import { SocketService } from "./socket_service";
+import { SocketService, StateUpdate } from "./socket_service";
 import { Cell } from "src/shared/cell";
-import { stringify } from "querystring";
+import { PlayerState } from "../../shared/player_state";
 
 const sandTexture = "../assets/path.jpg";
 const wallTexture = "../assets/wall.jpg";
@@ -26,11 +26,12 @@ export class Game {
     otherPlayers: Map<string, Player>;
     app: PIXI.Application;
     socketService: SocketService;
+    initComplete: boolean = false;
 
     constructor() {
         this.initPixi();
         this.socketService = new SocketService(this);
-        this.mainPlayer = new Player(this);
+        this.mainPlayer = new Player(this, "", true);
         this.otherPlayers = new Map<string, Player>();
     }
 
@@ -40,7 +41,9 @@ export class Game {
             let socketPromise = this.socketService.init()
 
             Promise.all([texturePromise, socketPromise]).then(() => {
+                this.mainPlayer.setId(this.socketService.getId())
                 this.socketService.addAsNewPlayer();
+                this.initComplete = true;
                 resolve();
             });
         });
@@ -89,7 +92,7 @@ export class Game {
 
     public handleNewPlayer(data) {
         console.log("got new player", data);
-        let p: Player = new Player(this);
+        let p: Player = new Player(this, data.id);
         this.otherPlayers.set(data.id, p);
         p.init();
         p.setPosition(data.x, data.y);
@@ -100,12 +103,47 @@ export class Game {
         this.grid = new RenderableGameGrid(this, data);
     }
 
-    public updateToNewOrientation(o: Orientation) {
-        this.socketService.updateOrientation(o);
+    public updatePlayerState(ps: PlayerState) {
+        this.socketService.updatePlayerState(ps);
     }
 
-    public updatePlayerOrientation(id: string, o: Orientation) {
-        this.otherPlayers.get(id).setNextOrientation(o);
+    public updateStates(states: StateUpdate & object) {
+        if (!this.initComplete) return;
+
+        for (let id in states) {
+            if (id == this.mainPlayer.getId()) {
+                continue;
+            }
+
+            let state: PlayerState = states[id];
+            let p: Player = this.otherPlayers.get(id);
+            if (!p) {
+                this.handleNewPlayer({
+                    id: id,
+                    x: state.p.x,
+                    y: state.p.y
+                });
+            } else {
+                p.setNextOrientation(state.orientation);
+
+                if (Math.abs(p.currentCell.getX() - state.p.x) > 1 || Math.abs(p.currentCell.getY() - state.p.y) > 1) {
+                    p.setPosition(state.p.x, state.p.y);
+                }
+            }
+
+        }
+    }
+
+    public removePlayer(id: string) {
+        let p: Player = this.otherPlayers.get(id);
+
+        if (!p) {
+            console.log("tried to delete non-existent player.");
+            return;
+        }
+
+        p.remove();
+        this.otherPlayers.delete(id);
     }
 
     render() {

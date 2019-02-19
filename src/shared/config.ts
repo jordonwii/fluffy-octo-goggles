@@ -3,7 +3,7 @@ export const GameConfig = {
     CELL_SIZE: 30,
 
     // Length of the DFS path (for DFS mode).
-    DFS_PATH_SIZE: 200,
+    DFS_PATH_SIZE: 300,
 
     // Width of the maze on a client's screen in pixels.
     RENDERED_MAZE_WIDTH: 800,

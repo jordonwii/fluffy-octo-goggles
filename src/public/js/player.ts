@@ -5,6 +5,7 @@ import { Game, TOP_OFFSET, LEFT_OFFSET } from "./game";
 import { rand } from "./common";
 import { GameConfig } from "../../shared/config";
 import { Orientation } from "./orientation";
+import { PlayerState, Point } from "../../shared/player_state";
 
 export class Player {
     sprite: PIXI.extras.AnimatedSprite;
@@ -14,7 +15,7 @@ export class Player {
     nextOrientation: Orientation = Orientation.NONE;
 
 
-    constructor(private game: Game) { }
+    constructor(private game: Game, private id: string, private isMainPlayer=false) { }
 
     init() {
         this.sprite = this.game.addPlayer();
@@ -95,7 +96,10 @@ export class Player {
                 this.currentOrientation = prevOrientation;
                 return;
             }
-            this.game.updateToNewOrientation(this.currentOrientation);
+
+            if (this.isMainPlayer) {
+                this.game.updatePlayerState(new PlayerState(this.currentOrientation, new Point(this.currentCell.getX(), this.currentCell.getY())));
+            }
 
             // Start animating to the next cell.
             this.rotateToOrientation();
@@ -109,6 +113,22 @@ export class Player {
 
     setNextOrientation(o: Orientation) {
         this.nextOrientation = o;
+    }
+
+    public remove() {
+        if (this.isMainPlayer) {
+            throw new TypeError("Tried to delete main player.");
+        }
+
+        this.game.app.stage.removeChild(this.sprite.parent);
+    }
+
+    public getId() {
+        return this.id;
+    }
+
+    public setId(id: string) {
+        this.id = id;
     }
 
     private animateMovement() {
