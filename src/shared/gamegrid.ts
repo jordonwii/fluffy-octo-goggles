@@ -36,7 +36,7 @@ export class GameGrid {
     }
 
     public getCell(x: number, y: number): Cell {
-        if (y > this.cells.length - 1 || x > this.cells[y].length - 1) {
+        if (y < 0 || y > this.cells.length - 1 || x < 0 || x > this.cells[y].length - 1) {
             return null;
         }
         return this.cells[y][x];
