@@ -1,15 +1,17 @@
 import * as sio from "socket.io-client";
 import { Game } from "./game";
 import { MapUtils } from "../../shared/map_utils";
-import { Cell } from "src/shared/cell";
-import { Orientation } from "./orientation";
 import { PlayerState } from "../../shared/player_state";
 
-const SERVER_URL:string = "http://localhost:3000";
+const SERVER_URL: string = window.location.host;
 
-export interface StateUpdate {
+interface StateUpdateInterface {
     [index: string]: PlayerState;
 }
+
+// The exported version should match the interface, but also include
+// methods on object.
+export type StateUpdate = StateUpdateInterface & object; 
 
 export class SocketService {
     private socket: SocketIOClient.Socket
@@ -51,8 +53,7 @@ export class SocketService {
         this.game.removePlayer(id);
     }
 
-    handleStateUpdate(states: StateUpdate & object) {
-        console.log("received updated states: ", states);
+    handleStateUpdate(states: StateUpdate) {
         this.game.updateStates(states);
     }
 }

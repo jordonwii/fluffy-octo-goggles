@@ -35,7 +35,7 @@ export class Player {
 
     setPosition(x?: number, y?: number) {
         let grid: RenderableGameGrid = this.game.grid;
-        if (!x || !y) {
+        if (x === undefined || y === undefined) {
             // Pick some random starting point.
             let haveValidPos = false;
             while (!haveValidPos) {
@@ -52,6 +52,8 @@ export class Player {
             this.currentCell = grid.getCell(x, y);
         }
 
+        this.animating = false;
+
         this.sprite.x = this.scaleCellValue(this.currentCell.getX());
         this.sprite.y = this.scaleCellValue(this.currentCell.getY());
     }
@@ -63,7 +65,7 @@ export class Player {
         };
 
         // If we're still moving between cells, just do the movement and nothing else.
-        // An orientation changes triggered between cells is only applied once we get to the next cell.
+        // An orientation change triggered between cells is only applied once we get to the next cell.
         if (this.animating) {
             this.animateMovement();
         } else {
@@ -91,14 +93,16 @@ export class Player {
                     break;
             }
 
+            // If this is the main player, send their new position to the server.
+            // Note that this needs to happen before the isWall check or the player's position won't get synced if they're about to hit a wall.
+            if (this.isMainPlayer) {
+                this.game.updatePlayerState(new PlayerState(this.currentOrientation, new Point(this.currentCell.getX(), this.currentCell.getY())));
+            }
+
             // If the cell our next orientation is facing is a wall, reset our orientation to the previous value.
             if (!nextCell || nextCell.isWall) {
                 this.currentOrientation = prevOrientation;
                 return;
-            }
-
-            if (this.isMainPlayer) {
-                this.game.updatePlayerState(new PlayerState(this.currentOrientation, new Point(this.currentCell.getX(), this.currentCell.getY())));
             }
 
             // Start animating to the next cell.

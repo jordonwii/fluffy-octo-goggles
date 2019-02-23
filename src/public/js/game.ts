@@ -26,6 +26,8 @@ export class Game {
     otherPlayers: Map<string, Player>;
     app: PIXI.Application;
     socketService: SocketService;
+
+    lastSyncedState: PlayerState = null;
     initComplete: boolean = false;
 
     constructor() {
@@ -104,10 +106,13 @@ export class Game {
     }
 
     public updatePlayerState(ps: PlayerState) {
-        this.socketService.updatePlayerState(ps);
+        if (this.lastSyncedState === null || ps.orientation != this.lastSyncedState.orientation || ps.p.x != this.lastSyncedState.p.x || ps.p.y != this.lastSyncedState.p.y) {
+            this.lastSyncedState = ps;
+            this.socketService.updatePlayerState(ps);
+        }
     }
 
-    public updateStates(states: StateUpdate & object) {
+    public updateStates(states: StateUpdate) {
         if (!this.initComplete) return;
 
         for (let id in states) {
@@ -115,18 +120,22 @@ export class Game {
                 continue;
             }
 
+
             let state: PlayerState = states[id];
             let p: Player = this.otherPlayers.get(id);
             if (!p) {
+                console.log("Creating new player %s to (%s, %s)", id, state.p.x, state.p.y);
                 this.handleNewPlayer({
                     id: id,
                     x: state.p.x,
                     y: state.p.y
                 });
             } else {
+                console.log("Updating player %s to (%s, %s)", id, state.p.x, state.p.y);
                 p.setNextOrientation(state.orientation);
 
                 if (Math.abs(p.currentCell.getX() - state.p.x) > 1 || Math.abs(p.currentCell.getY() - state.p.y) > 1) {
+                    console.log("Player position out of sync, resetting.");
                     p.setPosition(state.p.x, state.p.y);
                 }
             }
