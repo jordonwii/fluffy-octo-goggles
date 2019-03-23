@@ -93,31 +93,42 @@ export class DfsMaze implements Maze {
     }
 
     /**
-     * Evaluates whether placing a path at cell C would create a four cell loop.
+     * Evaluates whether placing a path at cell c would create a four cell loop.
      * 
      * For example, this would return true:
      * W W W
      * P P W
      * P c W
+     * 
      * @param c cell to consider
      */
     createsFourCellLoop(c: Cell) {
-        let isWallOrOffEdge = (cell: Cell) => cell === null || cell.isWall;
+        // If we get a cell over the edge of the map, we can't create a 4 cell loop with
+        // that cell.
+        let isWallOrOffEdge = (cell: Cell) => (cell === null || cell.isWall);
+
+        // Each entry in this array is a triple of relative-offsets, centered at the corners.
         let triples = [
-            // (-1, -1) and (0, -1) are counted in the c2, c3 defs below
-            [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1]
+            // (-1, 0) and (-1, -1) are counted in the c2, c3 defs below
+            [[-1, 0], [-1, -1], [0, -1]],
+            [[0, -1], [1, -1], [1, 0]],
+            [[1, 0], [1, 1], [0, 1]],
+            [[0, 1], [-1, 1], [-1, 0]]
         ];
 
-        let c1 = null;
-        let c2 = this.grid.getCell(c.getX() - 1, c.getY() - 1);
-        let c3 = this.grid.getCell(c.getX(), c.getY() - 1);
-        for (let i = 2; i < triples.length; i++) {
-            c1 = c2;
-            c2 = c3;
-            let nextPoint = triples.shift();
-            c3 = this.grid.getCell(c.getX() + nextPoint[0], c.getY() + nextPoint[1]);
+        for (let triple of triples) {
+            // If any one of these three cells is a wall (or over the edge of the map),
+            // then we can't create a 4-cell loop by converting the input cell to a path.
+            let foundWallOrEdge = false;
+            for (let pair of triple) {
+                let compareCell = this.grid.getCell(c.getX() + pair[0], c.getY() + pair[1]);
+                if (isWallOrOffEdge(compareCell)) {
+                    foundWallOrEdge = true;
+                    break;
+                }
+            }
 
-            if (!isWallOrOffEdge(c1) && !isWallOrOffEdge(c2) && !isWallOrOffEdge(c3)) {
+            if (!foundWallOrEdge) {
                 return true;
             }
         }
