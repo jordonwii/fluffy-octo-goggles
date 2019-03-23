@@ -5,6 +5,7 @@ import { DfsMaze } from "./dfs_maze";
 export class GameGrid {
     cells: Array<Array<Cell>> = [];
     isBuilt: boolean = false;
+    m: DfsMaze;
 
     constructor(private maxX: number, private maxY: number, cellArray?: Cell[][]) {
         if (cellArray !== undefined && (cellArray.length !== maxY || cellArray[0].length !== maxX)) {
@@ -29,8 +30,8 @@ export class GameGrid {
         if (this.isBuilt) {
             return;
         }
-        let m: Maze = new DfsMaze(this);
-        m.build();
+        this.m = new DfsMaze(this);
+        this.m.build();
 
         this.isBuilt = true;
     }

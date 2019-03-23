@@ -93,6 +93,9 @@ export class Game {
     }
 
     public handleNewPlayer(data) {
+        if (data.id == this.mainPlayer.getId()) {
+            return;
+        }
         console.log("got new player", data);
         let p: Player = new Player(this, data.id);
         this.otherPlayers.set(data.id, p);
