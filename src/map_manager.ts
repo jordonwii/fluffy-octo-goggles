@@ -9,9 +9,15 @@ const MAP_FILE_PATH: string = "map.json";
 export class MapManager {
     grid: GameGrid;
     wallArray: boolean[][];
-    private mapLoaded = false;
 
-    initMap(): Promise<GameGrid> {
+    initMap(loadMap: boolean): Promise<GameGrid> {
+        if (!loadMap) {
+            console.log("Map loading is off. Creating a new one...");
+            this.createInitialMap();
+            this.saveMap();
+            return Promise.resolve(this.grid);
+        }
+
         // TODO: implement a lock file here.
         return new Promise(function(resolve, reject) { 
             fs.readFile(MAP_FILE_PATH, (err, data) => {
@@ -31,7 +37,6 @@ export class MapManager {
                 }
 
                 resolve(this.grid);
-                this.mapLoaded = true;
             });
         }.bind(this));
     }
@@ -40,10 +45,11 @@ export class MapManager {
         console.log("Creating initial map...");
         this.grid = new GameGrid(Math.floor(GameConfig.RENDERED_MAZE_WIDTH/GameConfig.CELL_SIZE), Math.floor(GameConfig.RENDERED_MAZE_HEIGHT/GameConfig.CELL_SIZE));
         this.grid.build();
+        this.wallArray = MapUtils.cellArrayToWallArray(this.grid.copyAllCells());
     }
 
     saveMap() {
-        fs.writeFile(MAP_FILE_PATH, JSON.stringify(this.createSaveableData()), (err) => {
+        fs.writeFile(MAP_FILE_PATH, JSON.stringify(this.wallArray), (err) => {
             if (err) {
                 console.error("Map save failed. Error: ", err, "Map: ", this.grid);
             }
@@ -52,7 +58,4 @@ export class MapManager {
         })
     }
 
-    private createSaveableData() {
-        return this.grid.copyAllCells().map((cellCol: Cell[]) => cellCol.map((c: Cell) => c.isWall));
-    }
 }

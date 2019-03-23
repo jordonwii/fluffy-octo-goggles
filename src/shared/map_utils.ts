@@ -15,4 +15,8 @@ export class MapUtils {
         }
         return cellArray;
     }
+
+    static cellArrayToWallArray(cellArray: Cell[][]): boolean[][] {
+        return cellArray.map((cellCol: Cell[]) => cellCol.map((c: Cell) => c.isWall));
+    }
 }

@@ -8,6 +8,8 @@ import { Cell } from "./shared/cell";
 import { PlayerState, Point } from "./shared/player_state";
 import { Orientation } from "./public/js/orientation";
 
+const NO_LOAD_ARG = "noload";
+
 /**
  * Error Handler. Provides full stack - remove for production
  */
@@ -20,7 +22,13 @@ const server: Server = createServer(app);
 let io: sio.Server = sio.listen(server);
 const mapManager: MapManager = new MapManager();
 
-let mapPromise = mapManager.initMap();
+let noLoad = false;
+if (process.argv.length > 2 && process.argv[2] == NO_LOAD_ARG) {
+  noLoad = true;
+}
+
+
+let mapPromise = mapManager.initMap(!noLoad);
 
 mapPromise.then(startServer);
 

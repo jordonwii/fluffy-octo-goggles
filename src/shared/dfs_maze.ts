@@ -26,7 +26,7 @@ export class DfsMaze implements Maze {
 
     dfs(x: number, y: number) {
         let c: Cell = this.grid.getCell(x, y);
-        if (this.length > GameConfig.DFS_PATH_SIZE || c === null || !c.isWall || this.getNeighbors(x, y).filter((x) => x === null || x.isWall === false).length > 1) {
+        if (this.length > GameConfig.DFS_PATH_SIZE || c === null || !c.isWall || this.createsFourCellLoop(c)) {
             return;
         }
 
@@ -53,7 +53,7 @@ export class DfsMaze implements Maze {
         }
 
         while (possibleDirs.length > 0 && this.length < GameConfig.DFS_PATH_SIZE) {
-            var dirIndex = common.rand(possibleDirs.length - 1);
+            var dirIndex = common.rand(possibleDirs.length);
             var nextX = x;
             var nextY = y;
 
@@ -90,5 +90,38 @@ export class DfsMaze implements Maze {
         if (y + 1 < this.grid.getMaxY())
             result.push(this.grid.getCell(x, y + 1));
         return result;
+    }
+
+    /**
+     * Evaluates whether placing a path at cell C would create a four cell loop.
+     * 
+     * For example, this would return true:
+     * W W W
+     * P P W
+     * P c W
+     * @param c cell to consider
+     */
+    createsFourCellLoop(c: Cell) {
+        let isWallOrOffEdge = (cell: Cell) => cell === null || cell.isWall;
+        let triples = [
+            // (-1, -1) and (0, -1) are counted in the c2, c3 defs below
+            [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1]
+        ];
+
+        let c1 = null;
+        let c2 = this.grid.getCell(c.getX() - 1, c.getY() - 1);
+        let c3 = this.grid.getCell(c.getX(), c.getY() - 1);
+        for (let i = 2; i < triples.length; i++) {
+            c1 = c2;
+            c2 = c3;
+            let nextPoint = triples.shift();
+            c3 = this.grid.getCell(c.getX() + nextPoint[0], c.getY() + nextPoint[1]);
+
+            if (!isWallOrOffEdge(c1) && !isWallOrOffEdge(c2) && !isWallOrOffEdge(c3)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
