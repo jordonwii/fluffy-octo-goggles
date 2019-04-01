@@ -7,6 +7,7 @@ import { GameGrid } from "./shared/gamegrid";
 import { Cell } from "./shared/cell";
 import { PlayerState, Point } from "./shared/player_state";
 import { Orientation } from "./public/js/orientation";
+import { MAP, CLIENT_SETUP_FINISHED, PLAYER_STATE_UPDATES, CLIENT_STATE_UPDATE, NEW_PLAYER, CLIENT_DISCONNECTED } from "./shared/events";
 
 const NO_LOAD_ARG = "noload";
 
@@ -18,55 +19,58 @@ app.use(errorHandler());
 /**
  * Start Express server.
  */
-const server: Server = createServer(app);
-let io: sio.Server = sio.listen(server);
-const mapManager: MapManager = new MapManager();
 
-let noLoad = false;
-if (process.argv.length > 2 && process.argv[2] == NO_LOAD_ARG) {
-  noLoad = true;
-}
+export class FluffyOctoServer {
+  server: Server;
+  io: sio.Server;
+  mapManager: MapManager;
+  states: Map<string, PlayerState>;
 
+  constructor() {
+    this.server = createServer(app);
+    this.io = sio.listen(this.server)
+    this.mapManager = new MapManager();
+    this.states = new Map<string, PlayerState>();
+  }
 
-let mapPromise = mapManager.initMap(!noLoad);
-
-mapPromise.then(startServer);
-
-let states: Map<string, PlayerState> = new Map<string, PlayerState>();
-
-function startServer() {
-  server.listen(app.get("port"), () => {
-    console.log(
-      "  App is running at http://localhost:%d in %s mode",
-      app.get("port"),
-      app.get("env")
-    );
-    console.log("  Press CTRL-C to stop\n");
-  });
-
-  setInterval(() => {
-    console.log("states: ", states);
-    let out = {}
-
-    for (let [id, ps] of states.entries()) {
-      out[id] = ps;
+  initAndRun() {
+    let noLoad = false;
+    if (process.argv.length > 2 && process.argv[2] == NO_LOAD_ARG) {
+      noLoad = true;
     }
+    this.mapManager.initMap(!noLoad).then(this.startServer.bind(this));
+    this.io.on("connect", this.handleConnection.bind(this));
+    setInterval(this.emitPlayerStates.bind(this), 100);
+  }
 
-    io.emit('states', out);
-  }, 100)
+  private startServer() {
+    this.server.listen(app.get("port"), () => {
+      console.log(
+        "  App is running at http://localhost:%d in %s mode",
+        app.get("port"),
+        app.get("env")
+      );
+      console.log("  Press CTRL-C to stop\n");
+    });
+  }
 
-  io.on('connect', (socket: any) => {
+  private handleConnection(socket: sio.Socket) {
     console.log('Connected client.');
-    socket.emit('map', mapManager.wallArray);
-    socket.on('setup finished', (m) => {
+    socket.emit(MAP, this.mapManager.wallArray);
+
+    this.addSocketEvents(socket);
+  }
+
+  private addSocketEvents(socket: sio.Socket) {
+    socket.on(CLIENT_SETUP_FINISHED, (m) => {
       console.log("setup finished: ", m);
-      states.set(socket.id, new PlayerState(Orientation.NONE, new Point(m.pos.x, m.pos.y)))
-      socket.broadcast.emit('new player', { "id": socket.id, "x": m.pos.x, "y": m.pos.y });
+      this.states.set(socket.id, new PlayerState(Orientation.NONE, new Point(m.pos.x, m.pos.y)))
+      socket.broadcast.emit(NEW_PLAYER, { "id": socket.id, "x": m.pos.x, "y": m.pos.y });
     });
 
-    socket.on('state update', (ps: PlayerState) => {
+    socket.on(CLIENT_STATE_UPDATE, (ps: PlayerState) => {
       console.log("Got state update for id %s: %s", socket.id, ps);
-      states.set(socket.id, new PlayerState(
+      this.states.set(socket.id, new PlayerState(
         ps.orientation,
         new Point(ps.p.x, ps.p.y)
       ));
@@ -74,10 +78,23 @@ function startServer() {
 
     socket.on('disconnect', () => {
       console.log('Client disconnected');
-      states.delete(socket.id);
-      socket.broadcast.emit('disconnect client', socket.id);
+      this.states.delete(socket.id);
+      socket.broadcast.emit(CLIENT_DISCONNECTED, socket.id);
     });
-  });
+  }
+
+  private emitPlayerStates() {
+    console.log("emitting states: ", this.states);
+    let out = {}
+
+    for (let [id, ps] of this.states.entries()) {
+      out[id] = ps;
+    }
+
+    this.io.emit(PLAYER_STATE_UPDATES, out);
+  }
 }
 
+let server: FluffyOctoServer = new FluffyOctoServer();
+server.initAndRun();
 export default server;

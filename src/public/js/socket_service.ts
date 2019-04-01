@@ -2,6 +2,7 @@ import * as sio from "socket.io-client";
 import { Game } from "./game";
 import { MapUtils } from "../../shared/map_utils";
 import { PlayerState } from "../../shared/player_state";
+import { NEW_PLAYER, MAP, CLIENT_STATE_UPDATE, CLIENT_SETUP_FINISHED, CLIENT_DISCONNECTED } from "../../shared/events";
 
 const SERVER_URL: string = window.location.host;
 
@@ -22,10 +23,10 @@ export class SocketService {
             this.socket = sio.connect(SERVER_URL);
 
             this.socket.on("connect", () => resolve(this));
-            this.socket.on("disconnect client", this.handleDisconnect.bind(this));
-            this.socket.on("new player", this.handleNewPlayer.bind(this));
-            this.socket.on("map", this.handleMap.bind(this));
-            this.socket.on("states", this.handleStateUpdate.bind(this));
+            this.socket.on(CLIENT_DISCONNECTED, this.handleDisconnect.bind(this));
+            this.socket.on(NEW_PLAYER, this.handleNewPlayer.bind(this));
+            this.socket.on(MAP, this.handleMap.bind(this));
+            this.socket.on(CLIENT_STATE_UPDATE, this.handleStateUpdate.bind(this));
         }.bind(this));
     }
 
@@ -34,7 +35,7 @@ export class SocketService {
     }
 
     addAsNewPlayer() {
-        this.socket.emit("setup finished", {'pos': this.game.mainPlayer.currentCell});
+        this.socket.emit(CLIENT_SETUP_FINISHED, {'pos': this.game.mainPlayer.currentCell});
     }
 
     handleNewPlayer(data: any) {
@@ -46,7 +47,7 @@ export class SocketService {
     }
 
     updatePlayerState(ps: PlayerState) {
-        this.socket.emit("state update", ps);
+        this.socket.emit(CLIENT_STATE_UPDATE, ps);
     }
 
     handleDisconnect(id: string) {
