@@ -5,7 +5,7 @@ import app from "./app";
 import { MapManager } from "./map_manager";
 import { GameGrid } from "./shared/gamegrid";
 import { Cell } from "./shared/cell";
-import { PlayerState, Point } from "./shared/player_state";
+import { PlayerState, Point, InitialPlayerState } from "./shared/player_state";
 import { Orientation } from "./public/js/orientation";
 import { MAP, CLIENT_SETUP_FINISHED, PLAYER_STATE_UPDATES, CLIENT_STATE_UPDATE, NEW_PLAYER, CLIENT_DISCONNECTED } from "./shared/events";
 
@@ -62,17 +62,18 @@ export class FluffyOctoServer {
   }
 
   private addSocketEvents(socket: sio.Socket) {
-    socket.on(CLIENT_SETUP_FINISHED, (m) => {
-      console.log("setup finished: ", m);
-      this.states.set(socket.id, new PlayerState(Orientation.NONE, new Point(m.pos.x, m.pos.y)))
-      socket.broadcast.emit(NEW_PLAYER, { "id": socket.id, "x": m.pos.x, "y": m.pos.y });
+    socket.on(CLIENT_SETUP_FINISHED, (initialState: InitialPlayerState) => {
+      console.log("setup finished: ", initialState);
+      this.states.set(socket.id, new PlayerState(Orientation.NONE, initialState.p, initialState.color))
+      socket.broadcast.emit(NEW_PLAYER, initialState);
     });
 
     socket.on(CLIENT_STATE_UPDATE, (ps: PlayerState) => {
       console.log("Got state update for id %s: %s", socket.id, ps);
       this.states.set(socket.id, new PlayerState(
         ps.orientation,
-        new Point(ps.p.x, ps.p.y)
+        new Point(ps.p.x, ps.p.y),
+        ps.color
       ));
     })
 

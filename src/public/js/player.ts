@@ -6,6 +6,7 @@ import { rand } from "./common";
 import { GameConfig } from "../../shared/config";
 import { Orientation } from "./orientation";
 import { PlayerState, Point } from "../../shared/player_state";
+import { PlayerColor } from "../../shared/player_color";
 
 export class Player {
     sprite: PIXI.extras.AnimatedSprite;
@@ -15,10 +16,10 @@ export class Player {
     nextOrientation: Orientation = Orientation.NONE;
 
 
-    constructor(private game: Game, private id: string, private isMainPlayer=false) { }
+    constructor(private game: Game, private id: string, private color: PlayerColor, private isMainPlayer=false) { }
 
     init() {
-        this.sprite = this.game.addPlayer();
+        this.sprite = this.game.addPlayer(this.color);
         let bounds = this.sprite.getBounds();
         this.sprite.pivot.set(bounds.width / 2 / this.sprite.scale.x, bounds.height / 2 / this.sprite.scale.y);
 
@@ -96,7 +97,7 @@ export class Player {
             // If this is the main player, send their new position to the server.
             // Note that this needs to happen before the isWall check or the player's position won't get synced if they're about to hit a wall.
             if (this.isMainPlayer) {
-                this.game.updatePlayerState(new PlayerState(this.currentOrientation, new Point(this.currentCell.getX(), this.currentCell.getY())));
+                this.game.updatePlayerState(new PlayerState(this.currentOrientation, new Point(this.currentCell.getX(), this.currentCell.getY()), this.color));
             }
 
             // If the cell our next orientation is facing is a wall, reset our orientation to the previous value.
@@ -133,6 +134,10 @@ export class Player {
 
     public setId(id: string) {
         this.id = id;
+    }
+
+    public getColor(): PlayerColor {
+        return this.color;
     }
 
     private animateMovement() {

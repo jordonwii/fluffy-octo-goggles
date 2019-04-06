@@ -5,12 +5,17 @@ import * as PIXI from "pixi.js";
 import { Orientation } from "./orientation";
 import { SocketService, StateUpdate } from "./socket_service";
 import { Cell } from "src/shared/cell";
-import { PlayerState } from "../../shared/player_state";
+import { PlayerState, InitialPlayerState, Point } from "../../shared/player_state";
+import { PlayerColor } from "../../shared/player_color";
 
 const sandTexture = "../assets/path.jpg";
 const wallTexture = "../assets/wall.jpg";
 const pacmanOpen = "../assets/pacman_open.png";
 const pacmanClosed = "../assets/pacman_closed.png";
+const pacmanOpenRed = "../assets/pacman_open_red.png";
+const pacmanClosedRed = "../assets/pacman_closed_red.png";
+const pacmanOpenBlue = "../assets/pacman_open_blue.png";
+const pacmanClosedBlue = "../assets/pacman_closed_blue.png";
 
 export const TOP_OFFSET = Math.round(window.innerHeight - GameConfig.RENDERED_MAZE_HEIGHT) / 2;
 export const LEFT_OFFSET = Math.round(window.innerWidth - GameConfig.RENDERED_MAZE_WIDTH) / 2;
@@ -33,7 +38,7 @@ export class Game {
     constructor() {
         this.initPixi();
         this.socketService = new SocketService(this);
-        this.mainPlayer = new Player(this, "", true);
+        this.mainPlayer = new Player(this, "", (Math.random() > 0.5) ? PlayerColor.BLUE : PlayerColor.RED, true);
         this.otherPlayers = new Map<string, Player>();
     }
 
@@ -60,6 +65,10 @@ export class Game {
                 .add(wallTexture)
                 .add(pacmanOpen)
                 .add(pacmanClosed)
+                .add(pacmanOpenRed)
+                .add(pacmanClosedRed)
+                .add(pacmanOpenBlue)
+                .add(pacmanClosedBlue)
                 .load(() => {
                     this.grid.init();
                     this.mainPlayer.init();
@@ -82,25 +91,41 @@ export class Game {
         return this.addSprite(wallTexture.toString());
     }
 
-    public addPlayer(): PIXI.extras.AnimatedSprite {
+    public addPlayer(color: PlayerColor): PIXI.extras.AnimatedSprite {
+
+        let openTexture, closedTexture:  string;
+        switch (color) {
+            case PlayerColor.DEFAULT:
+              openTexture = pacmanOpen;
+              closedTexture = pacmanClosed;
+              break;
+            case PlayerColor.RED:
+              openTexture = pacmanOpenRed;
+              closedTexture = pacmanClosedRed;
+              break;
+            case PlayerColor.BLUE:
+              openTexture = pacmanOpenBlue;
+              closedTexture = pacmanClosedBlue;
+              break;
+        }
         let sprite = new PIXI.extras.AnimatedSprite([
-            PIXI.loader.resources[pacmanOpen.toString()].texture,
-            PIXI.loader.resources[pacmanClosed.toString()].texture
+            PIXI.loader.resources[openTexture].texture,
+            PIXI.loader.resources[closedTexture].texture
         ]);
         sprite.width = GameConfig.CELL_SIZE;
         sprite.height = GameConfig.CELL_SIZE;
         return sprite;
     }
 
-    public handleNewPlayer(data) {
+    public handleNewPlayer(data: InitialPlayerState) {
         if (data.id == this.mainPlayer.getId()) {
             return;
         }
         console.log("got new player", data);
-        let p: Player = new Player(this, data.id);
+        let p: Player = new Player(this, data.id, data.color);
         this.otherPlayers.set(data.id, p);
         p.init();
-        p.setPosition(data.x, data.y);
+        p.setPosition(data.p.x, data.p.y);
     }
 
     public handleMap(data: Cell[][]) {
@@ -128,11 +153,11 @@ export class Game {
             let p: Player = this.otherPlayers.get(id);
             if (!p) {
                 console.log("Creating new player %s to (%s, %s)", id, state.p.x, state.p.y);
-                this.handleNewPlayer({
-                    id: id,
-                    x: state.p.x,
-                    y: state.p.y
-                });
+                this.handleNewPlayer(new InitialPlayerState(
+                    id,
+                    new Point(state.p.x, state.p.y),
+                    state.color
+                ));
             } else {
                 console.log("Updating player %s to (%s, %s)", id, state.p.x, state.p.y);
                 p.setNextOrientation(state.orientation);

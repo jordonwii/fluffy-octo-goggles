@@ -1,8 +1,8 @@
 import * as sio from "socket.io-client";
 import { Game } from "./game";
 import { MapUtils } from "../../shared/map_utils";
-import { PlayerState } from "../../shared/player_state";
-import { NEW_PLAYER, MAP, CLIENT_STATE_UPDATE, CLIENT_SETUP_FINISHED, CLIENT_DISCONNECTED } from "../../shared/events";
+import { PlayerState, InitialPlayerState, Point } from "../../shared/player_state";
+import { NEW_PLAYER, MAP, CLIENT_STATE_UPDATE, CLIENT_SETUP_FINISHED, CLIENT_DISCONNECTED, PLAYER_STATE_UPDATES } from "../../shared/events";
 
 const SERVER_URL: string = window.location.host;
 
@@ -26,7 +26,7 @@ export class SocketService {
             this.socket.on(CLIENT_DISCONNECTED, this.handleDisconnect.bind(this));
             this.socket.on(NEW_PLAYER, this.handleNewPlayer.bind(this));
             this.socket.on(MAP, this.handleMap.bind(this));
-            this.socket.on(CLIENT_STATE_UPDATE, this.handleStateUpdate.bind(this));
+            this.socket.on(PLAYER_STATE_UPDATES, this.handleStateUpdate.bind(this));
         }.bind(this));
     }
 
@@ -35,10 +35,10 @@ export class SocketService {
     }
 
     addAsNewPlayer() {
-        this.socket.emit(CLIENT_SETUP_FINISHED, {'pos': this.game.mainPlayer.currentCell});
+        this.socket.emit(CLIENT_SETUP_FINISHED, new InitialPlayerState(null, new Point(this.game.mainPlayer.currentCell.getX(), this.game.mainPlayer.currentCell.getY()), this.game.mainPlayer.getColor()));
     }
 
-    handleNewPlayer(data: any) {
+    handleNewPlayer(data: InitialPlayerState) {
         this.game.handleNewPlayer(data);
     }
 
